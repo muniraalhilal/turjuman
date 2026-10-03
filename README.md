@@ -1,6 +1,8 @@
 # Turjuman · ترجمان
 ### Arabic Programming Language & Web Playground
 
+**[Live playground](https://turjuman-k4mj.onrender.com) · [Source on GitHub](https://github.com/muniraalhilal/turjuman)**
+
 A small Arabic programming language built from first principles: a handwritten lexer, recursive-descent parser with precedence climbing, explicit abstract syntax tree, and tree-walking interpreter. Write Arabic programs, inspect their internal representation, and run them locally without accounts, API keys, paid services, or third-party runtime packages.
 
 ![Turjuman playground](docs/playground.jpg)
@@ -8,7 +10,7 @@ A small Arabic programming language built from first principles: a handwritten l
 ## Run on macOS / VS Code
 
 1. Install Node.js 20 or newer, including npm, if not already installed.
-2. Open this **arabic-programming-language** folder in VS Code (`File → Open Folder`).
+2. Open the project folder (`turjuman` after cloning) in VS Code (`File → Open Folder`).
 3. Open its integrated terminal and run:
 
 ```sh
@@ -84,7 +86,7 @@ Read [Architecture and tradeoffs](docs/ARCHITECTURE.md) for design decisions and
 
 ## Playground
 
-Select an example, edit it, and click **تشغيل البرنامج** or press **⌘/Ctrl + Enter**. The output pane includes Tokens, AST, and global-variable tabs. Source is saved in this browser's local storage; **تنزيل البرنامج** exports a UTF-8 `.ar` file. The Stop button terminates the browser worker. Every run starts with fresh language memory.
+Select an example, edit it, and click **تشغيل البرنامج** or press **⌘/Ctrl + Enter**. The output pane includes Tokens, AST, and global-variable tabs. Source is saved in this browser's local storage; **تنزيل البرنامج** exports a UTF-8 `.ar` file. The Stop button cancels the backend request or terminates the browser worker. Every run starts with fresh language memory.
 
 The playground detects the Node backend through `/api/health` and runs code through `POST /api/run`. Each request executes in a disposable Node worker with memory and time limits. A static-only deployment falls back to a browser Web Worker and displays the active engine clearly. Both paths share the exact same language implementation. The editor includes token colors, a color legend, and persistent light/dark themes.
 
