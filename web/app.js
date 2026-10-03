@@ -1,4 +1,4 @@
-import { highlight } from './highlight.js';
+import { createEditor } from './editor.js';
 const $ = id => document.getElementById(id);
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -24,33 +24,20 @@ const examples = {
   error: '# خطأ وقت التنفيذ مع موقعه\nمتغير المقام = ٠\nاطبع("لنجرّب القسمة")\nاطبع(١٠ / المقام)',
 };
 let last = null, activeTab = 'output', worker = null, timer = null, request = null, runId = 0;
-try { $('code').value = localStorage.getItem('bayan.source') ?? examples.hello; } catch { $('code').value = examples.hello; }
-if ($('code').value === examples.hello.replace('ترجمان', 'بيان')) $('code').value = examples.hello;
-function syncScroll() {
-  $('lines').scrollTop = $('code').scrollTop;
-  $('highlight').scrollTop = $('code').scrollTop;
-  $('highlight').scrollLeft = $('code').scrollLeft;
-}
-function updateLines() {
-  $('lines').textContent = Array.from({ length: $('code').value.split('\n').length }, (_, i) => i + 1).join('\n');
-  const fragment = document.createDocumentFragment();
-  for (const token of highlight($('code').value + '\n')) {
-    const span = document.createElement('span');
-    span.className = `syntax-${token.kind}`;
-    span.textContent = token.text;
-    fragment.append(span);
-  }
-  $('highlight').replaceChildren(fragment);
-  syncScroll();
-}
-function save() { updateLines(); try { localStorage.setItem('bayan.source', $('code').value); } catch {} }
+let initialSource = examples.hello;
+try { initialSource = localStorage.getItem('bayan.source') ?? examples.hello; } catch {}
+if (initialSource === examples.hello.replace('ترجمان', 'بيان')) initialSource = examples.hello;
+const editor = createEditor($('code'), initialSource, {
+  onChange(source) { try { localStorage.setItem('bayan.source', source); } catch {} },
+  onRun: () => execute(),
+});
 function render() {
   if (!last) { $('result').textContent = 'شغّل البرنامج لرؤية النتيجة هنا.'; return; }
   $('result').textContent = activeTab === 'output' ? (last.output.join('\n') || (last.ok ? 'اكتمل البرنامج بدون مخرجات.' : 'لا توجد مخرجات.')) : JSON.stringify(last[activeTab] ?? null, null, 2);
 }
 function finish() { clearTimeout(timer); worker?.terminate(); worker = null; request?.abort(); request = null; $('run').disabled = false; $('stop').disabled = true; }
 async function execute() {
-  finish(); const id = ++runId, source = $('code').value;
+  finish(); const id = ++runId, source = editor.value;
   last = null; render(); $('error').hidden = true; $('status').textContent = 'جارٍ التنفيذ…'; $('run').disabled = true; $('stop').disabled = false;
   const began = performance.now();
   const receive = data => {
@@ -87,15 +74,9 @@ async function execute() {
 }
 $('run').onclick = execute;
 $('stop').onclick = () => { runId++; finish(); $('status').textContent = 'أُوقف التنفيذ'; };
-$('code').addEventListener('input', save);
-$('code').addEventListener('scroll', syncScroll);
-$('code').addEventListener('keydown', event => {
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') { event.preventDefault(); execute(); }
-  if (event.key === 'Tab') { event.preventDefault(); $('code').setRangeText('  ', $('code').selectionStart, $('code').selectionEnd, 'end'); save(); }
-});
 $('examples').onchange = () => {
-  if ($('code').value && !Object.values(examples).includes($('code').value) && !confirm('استبدال البرنامج الحالي بالمثال؟ نسّخي أو نزّلي تعديلاتك أولًا.')) return;
-  runId++; finish(); $('code').value = examples[$('examples').value]; save(); last = null; render(); $('error').hidden = true; $('status').textContent = 'جاهز للتجربة'; $('metrics').textContent = 'كل تشغيل يبدأ بذاكرة جديدة.';
+  if (editor.value && !Object.values(examples).includes(editor.value) && !confirm('استبدال البرنامج الحالي بالمثال؟ نسّخي أو نزّلي تعديلاتك أولًا.')) return;
+  runId++; finish(); editor.value = examples[$('examples').value]; last = null; render(); $('error').hidden = true; $('status').textContent = 'جاهز للتجربة'; $('metrics').textContent = 'كل تشغيل يبدأ بذاكرة جديدة.';
 };
 document.querySelectorAll('[data-tab]').forEach(button => {
   button.onclick = () => {
@@ -110,5 +91,4 @@ document.querySelectorAll('[data-tab]').forEach(button => {
     tabs[index].focus(); tabs[index].click();
   };
 });
-$('download').onclick = () => { const url = URL.createObjectURL(new Blob([$ ('code').value], { type: 'text/plain;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = 'main.ar'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
-updateLines();
+$('download').onclick = () => { const url = URL.createObjectURL(new Blob([editor.value], { type: 'text/plain;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = 'main.ar'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
