@@ -18,3 +18,23 @@ test('local server serves UI, runs API and rejects invalid requests', async t =>
   assert.equal((await fetch(base + '/src/language/index.js')).status, 200);
   assert.equal((await fetch(base + '/api/run', { method: 'POST', body: '{}' })).status, 415);
 });
+
+test('editor styles receive a unique CSP nonce without relaxing script policy', async t => {
+  const server = createServer();
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const nonces = [];
+  for (let i = 0; i < 2; i++) {
+    const response = await fetch(base);
+    const html = await response.text();
+    const nonce = html.match(/name="style-nonce" content="([^"]+)"/)[1];
+    nonces.push(nonce);
+    assert.notEqual(nonce, '__STYLE_NONCE__');
+    assert.ok(response.headers.get('content-security-policy').includes(`'nonce-${nonce}'`));
+    assert.match(response.headers.get('content-security-policy'), /script-src 'self';/);
+    assert.doesNotMatch(response.headers.get('content-security-policy'), /unsafe-inline/);
+    assert.doesNotMatch(html, /id="highlight"|<textarea/);
+  }
+  assert.notEqual(nonces[0], nonces[1]);
+});
