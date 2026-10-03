@@ -3,7 +3,7 @@
 
 **[Live playground](https://turjuman-k4mj.onrender.com) · [Source on GitHub](https://github.com/muniraalhilal/turjuman)**
 
-A small Arabic programming language built from first principles: a handwritten lexer, recursive-descent parser with precedence climbing, explicit abstract syntax tree, and tree-walking interpreter. Write Arabic programs, inspect their internal representation, and run them locally without accounts, API keys, paid services, or third-party runtime packages.
+A small Arabic programming language built from first principles: a handwritten lexer, recursive-descent parser with precedence climbing, explicit abstract syntax tree, and tree-walking interpreter. Write Arabic programs, inspect their internal representation, and run them locally without accounts, API keys, paid services, or third-party language-engine dependencies.
 
 ![Turjuman playground](docs/playground.jpg)
 
@@ -17,7 +17,7 @@ A small Arabic programming language built from first principles: a handwritten l
 npm start
 ```
 
-Open **http://localhost:3000**. Do not open `web/index.html` directly: browser module loading and Web Workers require the local server. No `npm install` is necessary because there are no dependencies. Stop the server with `Ctrl+C`.
+Open **http://localhost:3000**. Do not open `web/index.html` directly: browser module loading and Web Workers require the local server. No `npm install` is necessary to run the checked-in editor bundle and backend. To rebuild the CodeMirror editor after editing `web/editor-source.js`, run `pnpm install` followed by `pnpm run build:editor`. Stop the server with `Ctrl+C`.
 
 ```sh
 npm test                    # Language + HTTP integration tests
@@ -102,11 +102,11 @@ The response contains `ok`, `output`, `variables`, `steps`, `tokens`, and `ast`.
 
 ## Validation
 
-Run `npm test`: 38 tests cover precedence, AST structure, source locations, strings, short-circuit logic, scope, branches, loops, diagnostics, resource limits, example outputs, and HTTP behavior. GitHub Actions runs these tests on Node 22. Tests also exercise concurrency, cancellation, timeouts, HTTP limits, traversal attempts, highlighter correctness, 500 deterministic malformed-input cases and 168 arithmetic property cases. Browser smoke checks cover backend execution, examples, diagnostics, theme switching and AST inspection. Timing includes network/worker startup and is not a benchmark.
+Run `npm test`: 39 tests cover precedence, AST structure, source locations, strings, short-circuit logic, scope, branches, loops, diagnostics, resource limits, example outputs, and HTTP behavior. GitHub Actions runs these tests on Node 22. Tests also exercise concurrency, cancellation, timeouts, HTTP limits, traversal attempts, highlighter correctness, 500 deterministic malformed-input cases and 168 arithmetic property cases. Browser smoke checks cover backend execution, examples, diagnostics, theme switching and AST inspection. Timing includes network/worker startup and is not a benchmark.
 
 ## Deliberate v1 boundaries
 
-This is an educational interpreter, not a production language or public code-execution service. It supports numbers, strings, and booleans; functions, arrays, user input, modules, and debugger stepping are future extensions. Execution stops at the first error. The editor uses a safe text-only syntax-highlighting layer over an accessible textarea; it does not provide autocomplete.
+This is an educational interpreter, not a production language or public code-execution service. It supports numbers, strings, and booleans; functions, arrays, user input, modules, and debugger stepping are future extensions. Execution stops at the first error. The editor uses CodeMirror for bidirectional text, precise cursor positioning, syntax colors, selection and undo. The language engine remains handwritten and independent of CodeMirror. The bundled editor and its third-party license notices are checked in.
 
 The server binds to loopback locally and `0.0.0.0` on Render. Source size, AST depth, evaluation steps, strings and total output are bounded. The backend permits four concurrent workers, rejects excess work with HTTP 503, terminates workers after two seconds, and cancels work when clients disconnect. Worker heap limits add another resource boundary. These controls suit a portfolio demo, not a hardened multi-tenant service; service-level abuse/rate controls remain a future improvement. No file/network operations are exposed to the language.
 

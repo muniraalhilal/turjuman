@@ -4,11 +4,22 @@
   "private": true,
   "type": "module",
   "description": "An Arabic programming language with a handwritten interpreter and web playground",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test",
-    "demo": "node src/cli.js examples/fibonacci.ar"
+    "demo": "node src/cli.js examples/fibonacci.ar",
+    "build:editor": "esbuild web/editor-source.js --bundle --format=esm --minify --legal-comments=linked --outfile=web/editor.js"
+  },
+  "devDependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
+    "@lezer/highlight": "^1.2.5",
+    "esbuild": "^0.28.2"
   }
 }
