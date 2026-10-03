@@ -30,6 +30,6 @@ For source length n, tokenization is O(n); parsing is approximately O(n) with fi
 
 - Handwritten parser: transparent and easy to explain; extending syntax requires grammar and regression tests.
 - Tree walker: direct relationship to AST; slower than bytecode on larger workloads.
-- Lightweight editor: a tolerant scanner colors tokens even in unfinished code, with safe DOM text nodes, a transparent editing overlay, and synchronized scrolling. Light and dark themes share semantic colors.
+- Lightweight editor: CodeMirror renders editable syntax-colored text and its cursor in one measured layout, with bidirectional navigation, native input handling, undo history and shared light/dark theme colors. The previous transparent textarea overlay was removed because it could disagree with Arabic text layout. Styles use a per-response CSP nonce; scripts remain restricted to the same origin.
 - First-error reporting: deterministic, small implementation; no recovery to collect multiple diagnostics.
 - Planned: functions/call frames, arrays, step debugging, syntax-aware editor, source spans, and service-level abuse controls.
