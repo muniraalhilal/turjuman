@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
@@ -9,8 +10,9 @@ const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': '
 export function createServer(options = {}) {
   const runIsolated = createRunner(options);
   const server = http.createServer(async (req, res) => {
+    const styleNonce = randomBytes(18).toString('base64');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-${styleNonce}'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'`);
     res.setHeader('Cache-Control', 'no-store');
     const json = (status, data) => { if (res.destroyed) return; res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
@@ -40,7 +42,8 @@ export function createServer(options = {}) {
       const relative = path.startsWith('/src/language/') ? path.slice('/src/language/'.length) : path === '/' ? 'index.html' : path.slice(1);
       const file = resolve(base, decodeURIComponent(relative));
       if (!file.startsWith(base + sep) || !mime[extname(file)]) return json(404, { error: 'Not found' });
-      const content = await readFile(file);
+      let content = await readFile(file);
+      if (extname(file) === '.html') content = Buffer.from(content.toString().replace('__STYLE_NONCE__', styleNonce));
       res.writeHead(200, { 'Content-Type': mime[extname(file)] });
       res.end(req.method === 'HEAD' ? undefined : content);
     } catch (error) {
