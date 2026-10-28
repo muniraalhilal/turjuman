@@ -67,7 +67,7 @@ Source → Lexer → Tokens → Parser → AST → Interpreter → Output
                                                ↘ Lexical scopes
 ```
 
-The language is interpreted directly. It does not translate user code into JavaScript, call `eval`, or send code to AI. Each stage has a separate module and source-aware errors.
+The language is interpreted directly. It does not translate user code into JavaScript, or call `eval`. Each stage has a separate module and source-aware errors.
 
 | Component | Responsibility |
 | --- | --- |
